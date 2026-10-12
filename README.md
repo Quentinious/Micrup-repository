@@ -19,14 +19,14 @@
 ## Запуск PostgreSQL
 
 ```bash
-cd /home/runner/work/Micrup-repository/Micrup-repository/infra
+cd infra
 docker compose up -d
 ```
 
 ## Запуск backend
 
 ```bash
-cd /home/runner/work/Micrup-repository/Micrup-repository/backend
+cd backend
 ./gradlew bootRun
 ```
 
@@ -39,7 +39,7 @@ curl http://localhost:8080/api/health
 ## Запуск Android
 
 ```bash
-cd /home/runner/work/Micrup-repository/Micrup-repository/android
+cd android
 ./gradlew assembleDebug
 ```
 
@@ -50,13 +50,13 @@ cd /home/runner/work/Micrup-repository/Micrup-repository/android
 Backend unit/integration tests:
 
 ```bash
-cd /home/runner/work/Micrup-repository/Micrup-repository/backend
+cd backend
 ./gradlew test
 ```
 
 Backend full build:
 
 ```bash
-cd /home/runner/work/Micrup-repository/Micrup-repository/backend
+cd backend
 ./gradlew build
 ```
