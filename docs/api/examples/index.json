@@ -1,0 +1,97 @@
+[
+  {
+    "file": "health.json",
+    "schema": "Health",
+    "expectedValid": true
+  },
+  {
+    "file": "project-summary.json",
+    "schema": "ProjectSummary",
+    "expectedValid": true
+  },
+  {
+    "file": "project-page.json",
+    "schema": "ProjectPage",
+    "expectedValid": true
+  },
+  {
+    "file": "empty-project-page.json",
+    "schema": "ProjectPage",
+    "expectedValid": true
+  },
+  {
+    "file": "project-details.json",
+    "schema": "ProjectDetails",
+    "expectedValid": true
+  },
+  {
+    "file": "seller-profile.json",
+    "schema": "SellerProfile",
+    "expectedValid": true
+  },
+  {
+    "file": "user-profile.json",
+    "schema": "UserProfile",
+    "expectedValid": true
+  },
+  {
+    "file": "profile-input.json",
+    "schema": "ProfileInput",
+    "expectedValid": true
+  },
+  {
+    "file": "draft-input.json",
+    "schema": "ProjectDraftInput",
+    "expectedValid": true
+  },
+  {
+    "file": "empty-draft-input.json",
+    "schema": "ProjectDraftInput",
+    "expectedValid": true
+  },
+  {
+    "file": "project-draft.json",
+    "schema": "ProjectDraft",
+    "expectedValid": true
+  },
+  {
+    "file": "rejected-draft.json",
+    "schema": "ProjectDraft",
+    "expectedValid": true
+  },
+  {
+    "file": "view-event.json",
+    "schema": "ViewEventInput",
+    "expectedValid": true
+  },
+  {
+    "file": "api-error.json",
+    "schema": "ApiError",
+    "expectedValid": true
+  },
+  {
+    "file": "invalid-price.json",
+    "schema": "Price",
+    "expectedValid": false
+  },
+  {
+    "file": "invalid-currency.json",
+    "schema": "Money",
+    "expectedValid": false
+  },
+  {
+    "file": "invalid-public-contacts.json",
+    "schema": "ProjectDetails",
+    "expectedValid": false
+  },
+  {
+    "file": "invalid-view-identity.json",
+    "schema": "ViewEventInput",
+    "expectedValid": false
+  },
+  {
+    "file": "invalid-money-float.json",
+    "schema": "Money",
+    "expectedValid": false
+  }
+]
