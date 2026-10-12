@@ -51,8 +51,8 @@ Micrup — учебный командный проект: Android-прилож�
 | android/ | Kotlin, Jetpack Compose, Navigation Compose, ViewModel, Coroutines/Flow |
 | backend/ | Kotlin, Spring Boot, Web/Security/Data JPA, Flyway, PostgreSQL |
 | infra/ | Docker Compose для локальной PostgreSQL |
-| docs/architecture/ | [Архитектура](docs/architecture/README.md) и модель данных |
-| docs/api/ | [API](docs/api/README.md), контракт и примеры |
+| docs/architecture/ | Архитектурные документы; содержимое дополняется по мере согласования foundation |
+| docs/api/ | API-документация; OpenAPI-контракт добавляется отдельной задачей SCRUM-21 |
 | docs/requirements/ | [Требования](docs/requirements/README.md); актуальные задачи/статусы — в Jira |
 | .github/ | PR template и GitHub Actions |
 
