@@ -55,6 +55,11 @@
     "expectedValid": true
   },
   {
+    "file": "rejected-draft.json",
+    "schema": "ProjectDraft",
+    "expectedValid": true
+  },
+  {
     "file": "view-event.json",
     "schema": "ViewEventInput",
     "expectedValid": true

@@ -44,7 +44,7 @@ Bearer transport описывает потребность в authenticated user
 - ProjectDraftInput допускает {}, чтобы сохранять неполный draft. PUT заменяет полный набор editable полей: отсутствие очищает значение. Необязательные поля не принимают JSON null, кроме nullable metrics.
 - ProfileInput требует displayName; отсутствующий/null bio при PUT очищает описание. PATCH не введён, поэтому не требуется различать omitted и explicit null для частичного обновления.
 - Kotlin nullable у необязательного поля обозначает отсутствие; это не разрешение отправить null в JSON. Будущий serializer/mapper должен соблюдать OpenAPI, включая required nullable поля ответа.
-- Сервер назначает id/ownerId/status/timestamps. При submit проверяет обязательные поля и меняет только состояние модерации. API модератора и редактирование опубликованного проекта — дальнейший этап.
+- Сервер назначает id/ownerId/status/timestamps. Причина отклонения доступна владельцу в ProjectDraft.rejectionReason и не задаётся write request. При submit проверяются обязательные поля и меняется только состояние модерации. API модератора и редактирование опубликованного проекта — дальнейший этап.
 - Конкурентное редактирование draft, выбор auth provider и обязательность дополнительных показателей — вопросы перед реализацией listings/auth. Предложенный контракт остаётся Draft до их review.
 
 ## Пагинация, фильтры и повторы
@@ -78,7 +78,7 @@ python -m pip install -r tools/api/requirements.txt
 python tools/api/check_contract.py
 ```
 
-Проверяются OpenAPI/$ref, отсутствие повторных YAML keys, 18 положительных/отрицательных JSON fixtures, inline examples, приватные поля публичных схем и одинаковые Kotlin DTO. Примеры синтетические: [examples/index.json](examples/index.json) задаёт schema и expectedValid для каждого файла. Файлы invalid-* специально должны отклоняться.
+Проверяются OpenAPI/$ref, отсутствие повторных YAML keys, 19 положительных/отрицательных JSON fixtures, inline examples, приватные поля публичных схем и одинаковые Kotlin DTO. Примеры синтетические: [examples/index.json](examples/index.json) задаёт schema и expectedValid для каждого файла. Файлы invalid-* специально должны отклоняться.
 
 После согласованного изменения YAML:
 

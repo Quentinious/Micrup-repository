@@ -752,6 +752,10 @@ components:
           $ref: '#/components/schemas/PublicationStatus'
         createdAt: *id010
         updatedAt: *id010
+        rejectionReason:
+          type: string
+          nullable: true
+          maxLength: 2000
         title: *id011
         type: *id012
         askingPrice: *id013
@@ -981,6 +985,24 @@ components:
         technologyIds: *id026
         supportHoursPerWeek: 4.0
         transferredAssets: *id027
+    rejected-draft:
+      summary: Синтетический пример rejected-draft
+      value:
+        id: 11111111-1111-4111-8111-111111111111
+        ownerId: 22222222-2222-4222-8222-222222222222
+        publicationStatus: REJECTED
+        createdAt: '2026-10-12T00:00:00Z'
+        updatedAt: '2026-10-12T00:00:00Z'
+        title: Демонстрационный бот записи
+        type: BOT
+        askingPrice: *id023
+        shortDescription: Синтетический пример работающего бота.
+        description: Демонстрационные данные для проверки контракта; это не реальное
+          объявление.
+        technologyIds: *id026
+        supportHoursPerWeek: 4.0
+        transferredAssets: *id027
+        rejectionReason: Нужно уточнить состав передаваемых активов.
     view-event:
       summary: Синтетический пример view-event
       value:

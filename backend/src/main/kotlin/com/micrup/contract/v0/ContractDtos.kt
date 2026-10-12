@@ -127,6 +127,7 @@ data class ProjectDraft(
     val publicationStatus: PublicationStatus,
     val createdAt: String,
     val updatedAt: String,
+    val rejectionReason: String? = null,
     val title: String? = null,
     val type: ProjectType? = null,
     val askingPrice: Price? = null,
