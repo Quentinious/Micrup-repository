@@ -1,0 +1,994 @@
+openapi: 3.0.3
+info:
+  title: Micrup REST API v0
+  version: 0.1.0
+  description: Предложение для совместного review SCRUM-21. Реализован только /api/health.
+    Остальные операции описывают будущую реализацию; auth provider и продуктовые вопросы
+    ещё согласуются.
+servers:
+- url: http://localhost:8080
+  description: Локальное окружение; сейчас доступен только health
+security:
+- bearerAuth: []
+tags:
+- name: Health
+- name: Catalog
+- name: Profiles
+- name: Listings
+- name: Views
+paths:
+  /api/health:
+    get:
+      operationId: getHealth
+      tags:
+      - Health
+      summary: Проверить доступность backend
+      description: ''
+      x-implementation-status: implemented
+      x-jira-key: SCRUM-18
+      responses:
+        '200':
+          description: Backend отвечает
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+              examples:
+                health:
+                  $ref: '#/components/examples/health'
+        '500':
+          description: Ошибка foundation backend; единый ApiError для этого существующего
+            endpoint пока не реализован.
+      security: []
+  /api/v1/projects:
+    get:
+      operationId: listProjects
+      tags:
+      - Catalog
+      summary: Получить опубликованные проекты
+      description: Только PUBLISHED; page с нуля, size 1..100. Сортировка publishedAt
+        DESC, id ASC для равных дат. Страница вне диапазона возвращает пустые items
+        и реальные totals. minPriceMinor <= maxPriceMinor. При изменениях каталога
+        offset-пагинация не гарантирует snapshot. Дополнительные фильтры планируются
+        после согласования модели.
+      x-implementation-status: planned
+      x-jira-key: SCRUM-25
+      responses:
+        '200':
+          description: Страница каталога, включая пустую
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectPage'
+              examples:
+                project-page:
+                  $ref: '#/components/examples/project-page'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '500':
+          $ref: '#/components/responses/Error500'
+      security: []
+      parameters:
+      - name: page
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+          minimum: 0
+          default: 0
+      - name: size
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 100
+          default: 20
+      - name: sort
+        in: query
+        required: false
+        schema:
+          type: string
+          enum:
+          - publishedAtDesc
+          default: publishedAtDesc
+      - name: type
+        in: query
+        required: false
+        schema:
+          $ref: '#/components/schemas/ProjectType'
+      - name: minPriceMinor
+        in: query
+        required: false
+        schema: &id001
+          type: integer
+          format: int64
+          minimum: 0
+          maximum: 9000000000000000
+      - name: maxPriceMinor
+        in: query
+        required: false
+        schema: *id001
+      - name: maxSupportHoursPerWeek
+        in: query
+        required: false
+        schema:
+          type: number
+          minimum: 0
+          maximum: 168
+      - name: technologyIds
+        in: query
+        required: false
+        schema:
+          type: array
+          items: &id002
+            type: string
+            format: uuid
+          uniqueItems: true
+        style: form
+        explode: false
+        description: 'Список UUID через запятую; AND: проект содержит все выбранные
+          технологии.'
+  /api/v1/projects/{projectId}:
+    get:
+      operationId: getProject
+      tags:
+      - Catalog
+      summary: Получить публичную карточку
+      description: Только PUBLISHED. Неизвестный, архивный и недоступный проект одинаково
+        возвращают 404. Контактов, закрытых документов и произвольных ссылок на них
+        в DTO нет. metrics по умолчанию null; disclosure требует согласования и consent.
+      x-implementation-status: planned
+      x-jira-key: SCRUM-26
+      responses:
+        '200':
+          description: Публичная карточка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectDetails'
+              examples:
+                project-details:
+                  $ref: '#/components/examples/project-details'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '500':
+          $ref: '#/components/responses/Error500'
+      security: []
+      parameters:
+      - &id003
+        name: projectId
+        in: path
+        required: true
+        schema: *id002
+  /api/v1/users/{userId}/profile:
+    get:
+      operationId: getSellerProfile
+      tags:
+      - Profiles
+      summary: Получить публичный профиль продавца
+      description: ''
+      x-implementation-status: planned
+      x-jira-key: SCRUM-21
+      responses:
+        '200':
+          description: Публичный профиль без контактов
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SellerProfile'
+              examples:
+                seller-profile:
+                  $ref: '#/components/examples/seller-profile'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '500':
+          $ref: '#/components/responses/Error500'
+      security: []
+      parameters:
+      - name: userId
+        in: path
+        required: true
+        schema: *id002
+  /api/v1/me/profile:
+    get:
+      operationId: getMyProfile
+      tags:
+      - Profiles
+      summary: Получить свой профиль
+      description: ''
+      x-implementation-status: planned
+      x-jira-key: SCRUM-21
+      responses:
+        '200':
+          description: Профиль текущего пользователя
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+              examples:
+                user-profile:
+                  $ref: '#/components/examples/user-profile'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '500':
+          $ref: '#/components/responses/Error500'
+    put:
+      operationId: replaceMyProfile
+      tags:
+      - Profiles
+      summary: Создать или заменить свой профиль
+      description: PUT заменяет полное содержимое профиля; displayName обязателен,
+        отсутствующий/null bio очищает описание. userId назначает сервер из authentication;
+        это не регистрация пользователя.
+      x-implementation-status: planned
+      x-jira-key: SCRUM-21
+      responses:
+        '200':
+          description: Сохранённый профиль
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+              examples:
+                user-profile:
+                  $ref: '#/components/examples/user-profile'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '500':
+          $ref: '#/components/responses/Error500'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProfileInput'
+  /api/v1/me/projects:
+    post:
+      operationId: createProjectDraft
+      tags:
+      - Listings
+      summary: Создать свой draft
+      description: Создаёт DRAFT, разрешено неполное содержимое и {}. ownerId, id,
+        status и timestamps назначает сервер. Каждый POST создаёт новый draft; после
+        неоднозначного сетевого исхода не делать автоматический retry до отдельного
+        решения об idempotency.
+      x-implementation-status: planned
+      x-jira-key: SCRUM-21
+      responses:
+        '201':
+          description: Новый draft
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectDraft'
+              examples:
+                project-draft:
+                  $ref: '#/components/examples/project-draft'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '500':
+          $ref: '#/components/responses/Error500'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectDraftInput'
+  /api/v1/me/projects/{projectId}:
+    get:
+      operationId: getMyProjectDraft
+      tags:
+      - Listings
+      summary: Получить своё объявление
+      description: ''
+      x-implementation-status: planned
+      x-jira-key: SCRUM-21
+      responses:
+        '200':
+          description: Свои данные объявления
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectDraft'
+              examples:
+                project-draft:
+                  $ref: '#/components/examples/project-draft'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '500':
+          $ref: '#/components/responses/Error500'
+      parameters:
+      - *id003
+    put:
+      operationId: replaceProjectDraft
+      tags:
+      - Listings
+      summary: Заменить содержимое draft
+      description: Полная замена editable полей, отсутствующие поля очищаются. Только
+        собственный DRAFT/REJECTED; после сохранения DRAFT. Иные состояния дают 409.
+        Чужой/неизвестный id даёт 404. Версионирование конкурентного редактирования
+        согласуется до реализации listings.
+      x-implementation-status: planned
+      x-jira-key: SCRUM-21
+      responses:
+        '200':
+          description: Сохранённый DRAFT
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectDraft'
+              examples:
+                project-draft:
+                  $ref: '#/components/examples/project-draft'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '500':
+          $ref: '#/components/responses/Error500'
+      parameters:
+      - *id003
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectDraftInput'
+  /api/v1/me/projects/{projectId}/submit:
+    post:
+      operationId: submitProject
+      tags:
+      - Listings
+      summary: Отправить draft на модерацию
+      description: Проверяет обязательные title/type/askingPrice/shortDescription/description,
+        непустой technologyIds и supportHoursPerWeek. Не публикует проект. Повтор
+        для PENDING_REVIEW возвращает его без повторной модерации; PUBLISHED/ARCHIVED
+        дают 409. Пример ProjectDraft в POST create имеет DRAFT; здесь status PENDING_REVIEW.
+      x-implementation-status: planned
+      x-jira-key: SCRUM-21
+      responses:
+        '200':
+          description: Состояние PENDING_REVIEW
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectDraft'
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '500':
+          $ref: '#/components/responses/Error500'
+      parameters:
+      - *id003
+  /api/v1/projects/{projectId}/views:
+    post:
+      operationId: recordProjectView
+      tags:
+      - Views
+      summary: Записать просмотр карточки
+      description: Только authenticated user, только PUBLISHED. userId и occurredAt
+        назначает сервер. Уникальность (userId,eventId); повтор с другим projectId
+        даёт 409. Анонимная запись истории и рекомендации здесь не реализуются.
+      x-implementation-status: planned
+      x-jira-key: SCRUM-21
+      responses:
+        '204':
+          description: Событие принято; повтор того же eventId для этого user/project
+            также 204, без тела
+        '400':
+          $ref: '#/components/responses/Error400'
+        '401':
+          $ref: '#/components/responses/Error401'
+        '404':
+          $ref: '#/components/responses/Error404'
+        '409':
+          $ref: '#/components/responses/Error409'
+        '500':
+          $ref: '#/components/responses/Error500'
+      parameters:
+      - *id003
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ViewEventInput'
+components:
+  schemas:
+    Currency:
+      type: string
+      enum:
+      - RUB
+    ProjectType:
+      type: string
+      enum:
+      - BOT
+      - WEB_SERVICE
+      - MOBILE_APP
+      - OTHER
+    PublicationStatus:
+      type: string
+      enum:
+      - DRAFT
+      - PENDING_REVIEW
+      - REJECTED
+      - PUBLISHED
+      - ARCHIVED
+    ErrorCode:
+      type: string
+      enum:
+      - INVALID_REQUEST
+      - UNAUTHENTICATED
+      - FORBIDDEN
+      - NOT_FOUND
+      - CONFLICT
+      - INTERNAL_ERROR
+    Money:
+      type: object
+      additionalProperties: false
+      properties:
+        amountMinor: *id001
+        currency:
+          $ref: '#/components/schemas/Currency'
+      required:
+      - amountMinor
+      - currency
+    Price:
+      type: object
+      additionalProperties: false
+      properties:
+        amountMinor:
+          type: integer
+          format: int64
+          minimum: 1
+          maximum: 9000000000000000
+        currency:
+          $ref: '#/components/schemas/Currency'
+      required:
+      - amountMinor
+      - currency
+    Technology:
+      type: object
+      additionalProperties: false
+      properties:
+        id: *id002
+        name:
+          type: string
+          minLength: 1
+          maxLength: 80
+        slug:
+          type: string
+          pattern: ^[a-z0-9][a-z0-9-]{0,79}$
+      required:
+      - id
+      - name
+      - slug
+    ProjectMetrics:
+      type: object
+      additionalProperties: false
+      properties:
+        periodStart:
+          type: string
+          format: date
+        periodEnd:
+          type: string
+          format: date
+        revenue:
+          $ref: '#/components/schemas/Money'
+        expenses:
+          $ref: '#/components/schemas/Money'
+        payingUserCount:
+          type: integer
+          format: int32
+          minimum: 0
+      required:
+      - periodStart
+      - periodEnd
+      nullable: true
+      description: Суммы за указанный период; даты согласованы. Неизвестный показатель
+        отсутствует. Публичная выдача только после согласования disclosure и consent.
+    SellerProfile:
+      type: object
+      additionalProperties: false
+      properties:
+        userId: *id002
+        displayName:
+          type: string
+          minLength: 1
+          maxLength: 100
+        bio:
+          type: string
+          nullable: true
+          maxLength: 2000
+      required:
+      - userId
+      - displayName
+      - bio
+    UserProfile:
+      type: object
+      additionalProperties: false
+      properties:
+        userId: *id002
+        displayName:
+          type: string
+          minLength: 1
+          maxLength: 100
+        bio:
+          type: string
+          nullable: true
+          maxLength: 2000
+      required:
+      - userId
+      - displayName
+      - bio
+    ProfileInput:
+      type: object
+      additionalProperties: false
+      properties:
+        displayName:
+          type: string
+          minLength: 1
+          maxLength: 100
+        bio:
+          type: string
+          nullable: true
+          maxLength: 2000
+      required:
+      - displayName
+    ViewEventInput:
+      type: object
+      additionalProperties: false
+      properties:
+        eventId: *id002
+      required:
+      - eventId
+    FieldError:
+      type: object
+      additionalProperties: false
+      properties:
+        field:
+          type: string
+          minLength: 1
+        message:
+          type: string
+          minLength: 1
+      required:
+      - field
+      - message
+    ApiError:
+      type: object
+      additionalProperties: false
+      properties:
+        code:
+          $ref: '#/components/schemas/ErrorCode'
+        message:
+          type: string
+          minLength: 1
+        fieldErrors:
+          type: array
+          items:
+            $ref: '#/components/schemas/FieldError'
+        traceId:
+          type: string
+          minLength: 1
+      required:
+      - code
+      - message
+      - fieldErrors
+      - traceId
+    Health:
+      type: object
+      additionalProperties: false
+      properties:
+        status:
+          type: string
+          enum:
+          - UP
+      required:
+      - status
+    ProjectSummary:
+      type: object
+      additionalProperties: false
+      properties:
+        id: *id002
+        title: &id004
+          type: string
+          minLength: 1
+          maxLength: 160
+        type: &id005
+          $ref: '#/components/schemas/ProjectType'
+        askingPrice: &id006
+          $ref: '#/components/schemas/Price'
+        shortDescription: &id007
+          type: string
+          minLength: 1
+          maxLength: 500
+        technologies: &id008
+          type: array
+          items:
+            $ref: '#/components/schemas/Technology'
+          minItems: 1
+        supportHoursPerWeek: &id009
+          type: number
+          format: double
+          minimum: 0
+          maximum: 168
+        publishedAt: &id010
+          type: string
+          format: date-time
+      required:
+      - id
+      - title
+      - type
+      - askingPrice
+      - shortDescription
+      - technologies
+      - supportHoursPerWeek
+      - publishedAt
+    ProjectDetails:
+      type: object
+      additionalProperties: false
+      properties:
+        id: *id002
+        title: *id004
+        type: *id005
+        askingPrice: *id006
+        shortDescription: *id007
+        technologies: *id008
+        supportHoursPerWeek: *id009
+        publishedAt: *id010
+        description:
+          type: string
+          minLength: 1
+          maxLength: 10000
+        seller:
+          $ref: '#/components/schemas/SellerProfile'
+        saleReason:
+          type: string
+          nullable: true
+          maxLength: 2000
+        transferredAssets:
+          type: array
+          items:
+            type: string
+            minLength: 1
+            maxLength: 200
+          maxItems: 30
+        metrics:
+          $ref: '#/components/schemas/ProjectMetrics'
+      required:
+      - id
+      - title
+      - type
+      - askingPrice
+      - shortDescription
+      - technologies
+      - supportHoursPerWeek
+      - publishedAt
+      - description
+      - seller
+      - saleReason
+      - transferredAssets
+      - metrics
+    ProjectDraftInput:
+      type: object
+      additionalProperties: false
+      properties:
+        title: &id011
+          type: string
+          minLength: 1
+          maxLength: 160
+        type: &id012
+          $ref: '#/components/schemas/ProjectType'
+        askingPrice: &id013
+          $ref: '#/components/schemas/Price'
+        shortDescription: &id014
+          type: string
+          minLength: 1
+          maxLength: 500
+        description: &id015
+          type: string
+          minLength: 1
+          maxLength: 10000
+        technologyIds: &id016
+          type: array
+          items: *id002
+          uniqueItems: true
+        supportHoursPerWeek: &id017
+          type: number
+          format: double
+          minimum: 0
+          maximum: 168
+        saleReason: &id018
+          type: string
+          maxLength: 2000
+        transferredAssets: &id019
+          type: array
+          items:
+            type: string
+            minLength: 1
+            maxLength: 200
+          maxItems: 30
+        metrics: &id020
+          $ref: '#/components/schemas/ProjectMetrics'
+      description: Полное заменяемое содержимое draft. Пустой объект допустим. Отсутствующее
+        поле очищается при PUT; null разрешён только для nullable metrics. Владелец
+        и статус назначаются сервером.
+    ProjectDraft:
+      type: object
+      additionalProperties: false
+      properties:
+        id: *id002
+        ownerId: *id002
+        publicationStatus:
+          $ref: '#/components/schemas/PublicationStatus'
+        createdAt: *id010
+        updatedAt: *id010
+        title: *id011
+        type: *id012
+        askingPrice: *id013
+        shortDescription: *id014
+        description: *id015
+        technologyIds: *id016
+        supportHoursPerWeek: *id017
+        saleReason: *id018
+        transferredAssets: *id019
+        metrics: *id020
+      required:
+      - id
+      - ownerId
+      - publicationStatus
+      - createdAt
+      - updatedAt
+    ProjectPage:
+      type: object
+      additionalProperties: false
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProjectSummary'
+        page:
+          type: integer
+          format: int32
+          minimum: 0
+        size:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 100
+        totalElements:
+          type: integer
+          format: int64
+          minimum: 0
+        totalPages:
+          type: integer
+          format: int32
+          minimum: 0
+        hasNext:
+          type: boolean
+      required:
+      - items
+      - page
+      - size
+      - totalElements
+      - totalPages
+      - hasNext
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: Предварительный транспорт для authenticated операций. Не утверждает
+        JWT/провайдера и не реализует auth.
+  responses:
+    Error400:
+      description: Некорректный запрос или неполные данные
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            code: INVALID_REQUEST
+            message: Некорректный запрос или неполные данные
+            fieldErrors: &id021 []
+            traceId: demo-trace-1
+    Error401:
+      description: Нужна аутентификация
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            code: UNAUTHENTICATED
+            message: Нужна аутентификация
+            fieldErrors: *id021
+            traceId: demo-trace-1
+    Error403:
+      description: Нет права на операцию
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            code: FORBIDDEN
+            message: Нет права на операцию
+            fieldErrors: *id021
+            traceId: demo-trace-1
+    Error404:
+      description: Объект неизвестен или недоступен
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            code: NOT_FOUND
+            message: Объект неизвестен или недоступен
+            fieldErrors: *id021
+            traceId: demo-trace-1
+    Error409:
+      description: Конфликт состояния или повторного event ID
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            code: CONFLICT
+            message: Конфликт состояния или повторного event ID
+            fieldErrors: *id021
+            traceId: demo-trace-1
+    Error500:
+      description: Внутренняя ошибка; служебные подробности не выдаются
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+          example:
+            code: INTERNAL_ERROR
+            message: Внутренняя ошибка; служебные подробности не выдаются
+            fieldErrors: *id021
+            traceId: demo-trace-1
+  examples:
+    health:
+      summary: Синтетический пример health
+      value:
+        status: UP
+    project-summary:
+      summary: Синтетический пример project-summary
+      value: &id022
+        id: 11111111-1111-4111-8111-111111111111
+        title: Демонстрационный бот записи
+        type: BOT
+        askingPrice: &id023
+          amountMinor: 25000000
+          currency: RUB
+        shortDescription: Синтетический пример работающего бота.
+        technologies: &id024
+        - id: 33333333-3333-4333-8333-333333333333
+          name: Kotlin
+          slug: kotlin
+        supportHoursPerWeek: 4.0
+        publishedAt: '2026-10-12T00:00:00Z'
+    project-page:
+      summary: Синтетический пример project-page
+      value:
+        items:
+        - *id022
+        page: 0
+        size: 20
+        totalElements: 1
+        totalPages: 1
+        hasNext: false
+    empty-project-page:
+      summary: Синтетический пример empty-project-page
+      value:
+        items: []
+        page: 0
+        size: 20
+        totalElements: 0
+        totalPages: 0
+        hasNext: false
+    project-details:
+      summary: Синтетический пример project-details
+      value:
+        id: 11111111-1111-4111-8111-111111111111
+        title: Демонстрационный бот записи
+        type: BOT
+        askingPrice: *id023
+        shortDescription: Синтетический пример работающего бота.
+        technologies: *id024
+        supportHoursPerWeek: 4.0
+        publishedAt: '2026-10-12T00:00:00Z'
+        description: Демонстрационные данные для проверки контракта; это не реальное
+          объявление.
+        seller: &id025
+          userId: 22222222-2222-4222-8222-222222222222
+          displayName: Демо-продавец
+          bio: null
+        saleReason: null
+        transferredAssets:
+        - Исходный код
+        metrics: null
+    seller-profile:
+      summary: Синтетический пример seller-profile
+      value: *id025
+    user-profile:
+      summary: Синтетический пример user-profile
+      value: *id025
+    profile-input:
+      summary: Синтетический пример profile-input
+      value:
+        displayName: Демо-продавец
+        bio: null
+    draft-input:
+      summary: Синтетический пример draft-input
+      value:
+        title: Демонстрационный бот записи
+        type: BOT
+        askingPrice: *id023
+        shortDescription: Синтетический пример работающего бота.
+        description: Демонстрационные данные для проверки контракта; это не реальное
+          объявление.
+        technologyIds: &id026
+        - 33333333-3333-4333-8333-333333333333
+        supportHoursPerWeek: 4.0
+        transferredAssets: &id027
+        - Исходный код
+    empty-draft-input:
+      summary: Синтетический пример empty-draft-input
+      value: {}
+    project-draft:
+      summary: Синтетический пример project-draft
+      value:
+        id: 11111111-1111-4111-8111-111111111111
+        ownerId: 22222222-2222-4222-8222-222222222222
+        publicationStatus: DRAFT
+        createdAt: '2026-10-12T00:00:00Z'
+        updatedAt: '2026-10-12T00:00:00Z'
+        title: Демонстрационный бот записи
+        type: BOT
+        askingPrice: *id023
+        shortDescription: Синтетический пример работающего бота.
+        description: Демонстрационные данные для проверки контракта; это не реальное
+          объявление.
+        technologyIds: *id026
+        supportHoursPerWeek: 4.0
+        transferredAssets: *id027
+    view-event:
+      summary: Синтетический пример view-event
+      value:
+        eventId: 44444444-4444-4444-8444-444444444444
+    api-error:
+      summary: Синтетический пример api-error
+      value:
+        code: NOT_FOUND
+        message: Проект не найден
+        fieldErrors: *id021
+        traceId: demo-trace-1

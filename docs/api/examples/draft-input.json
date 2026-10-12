@@ -1,0 +1,17 @@
+{
+  "title": "Демонстрационный бот записи",
+  "type": "BOT",
+  "askingPrice": {
+    "amountMinor": 25000000,
+    "currency": "RUB"
+  },
+  "shortDescription": "Синтетический пример работающего бота.",
+  "description": "Демонстрационные данные для проверки контракта; это не реальное объявление.",
+  "technologyIds": [
+    "33333333-3333-4333-8333-333333333333"
+  ],
+  "supportHoursPerWeek": 4.0,
+  "transferredAssets": [
+    "Исходный код"
+  ]
+}

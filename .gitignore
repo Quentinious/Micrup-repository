@@ -4,3 +4,5 @@
 **/.kotlin/
 local.properties
 *.iml
+.venv-api/
+__pycache__/
